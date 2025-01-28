@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip Clock</title>
+    <style>
+        @font-face {
+            font-family: 'DS-Digital';
+            src: url('https://cdn.jsdelivr.net/gh/kndesign/webfont-ds-digital/DS-DIGI.TTF') format('truetype');
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=TH+Sarabun+New:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+        /* Reset and Base Styles */
+        body {
+            font-family: 'DS-Digital', sans-serif;
+            background-color: #101010;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .light-mode {
+            background-color: #fff;
+            color: #101010;
+        }
+
+        /* Logo Styling */
+        .logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            height: auto;
+        }
+
+        /* Clock Styling */
+        .clock {
+            display: flex;
+            gap: 10px;
+            font-size: 8vw;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .digit-wrapper {
+            perspective: 1000px;
+            width: 15vw;
+            height: 18vw;
+            position: relative;
+        }
+
+        .digit {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            background: #222;
+            color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            font-size: 10vw;
+            font-weight: bold;
+            position: absolute;
+            backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        .digit.top {
+            transform-origin: bottom;
+            transform: rotateX(0deg);
+            z-index: 2;
+        }
+
+        .digit.bottom {
+            transform-origin: top;
+            transform: rotateX(90deg);
+            z-index: 1;
+        }
+
+        .digit-wrapper.flip .top {
+            animation: flipTop 0.3s forwards;
+        }
+
+        .digit-wrapper.flip .bottom {
+            animation: flipBottom 0.3s forwards;
+        }
+
+        @keyframes flipTop {
+            0% {
+                transform: rotateX(0deg);
+            }
+            100% {
+                transform: rotateX(-90deg);
+            }
+        }
+
+        @keyframes flipBottom {
+            0% {
+                transform: rotateX(90deg);
+            }
+            100% {
+                transform: rotateX(0deg);
+            }
+        }
+
+        /* Date Styling */
+        #date {
+            margin-top: 100px;
+            font-size: 10rem;
+            color: #bbb;
+            transition: color 0.3s;
+        }
+
+        /* Styling for ":" */
+        .colon {
+            font-family: 'TH Sarabun New', sans-serif;
+            color: #f5a623;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: -60px;
+        }
+
+        /* Button Styling */
+        .theme-toggle {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 2rem;
+        }
+
+        .theme-toggle.light-mode {
+            background-color: #f5a623;
+            color: #101010;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 1024px) {
+            .clock {
+                font-size: 10vw;
+            }
+
+            .digit-wrapper {
+                width: 18vw;
+                height: 22vw;
+            }
+
+            .digit {
+                font-size: 12vw;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .clock {
+                font-size: 12vw;
+            }
+
+            .digit-wrapper {
+                width: 20vw;
+                height: 25vw;
+            }
+
+            .digit {
+                font-size: 14vw;
+            }
+
+            .logo {
+                width: 120px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .clock {
+                font-size: 16vw;
+            }
+
+            .digit-wrapper {
+                width: 25vw;
+                height: 30vw;
+            }
+
+            .digit {
+                font-size: 18vw;
+            }
+
+            .logo {
+                width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Logo -->
+    <img src="kwflogo.png" alt="Logo" class="logo">
+
+    <!-- Clock -->
+    <div class="clock">
+        <div class="digit-wrapper" id="hourTens">
+            <div class="digit top">0</div>
+            <div class="digit bottom">0</div>
+        </div>
+        <div class="digit-wrapper" id="hourOnes">
+            <div class="digit top">0</div>
+            <div class="digit bottom">0</div>
+        </div>
+        <div class="colon" style="font-size: 10vw;">:</div>
+        <div class="digit-wrapper" id="minuteTens">
+            <div class="digit top">0</div>
+            <div class="digit bottom">0</div>
+        </div>
+        <div class="digit-wrapper" id="minuteOnes">
+            <div class="digit top">0</div>
+            <div class="digit bottom">0</div>
+        </div>
+    </div>
+    <div id="date">กำลังโหลด...</div>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="theme-toggle">🌙</button>
+
+    <script>
+        // Function to update the clock
+        function updateClock() {
+            const now = new Date();
+
+            // Update date in DD/MM/YYYY format
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            document.getElementById('date').textContent = `${day}/${month}/${year}`;
+
+            // Split hours and minutes
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            // Update digits
+            flipDigit('hourTens', hours.charAt(0));
+            flipDigit('hourOnes', hours.charAt(1));
+            flipDigit('minuteTens', minutes.charAt(0));
+            flipDigit('minuteOnes', minutes.charAt(1));
+        }
+
+        // Function to handle the flipping effect of the digits
+        function flipDigit(id, value) {
+            const wrapper = document.getElementById(id);
+            const top = wrapper.querySelector('.top');
+            const bottom = wrapper.querySelector('.bottom');
+
+            if (top.textContent !== value) {
+                bottom.textContent = value;
+
+                // Start the animation
+                wrapper.classList.remove('flip');
+                void wrapper.offsetWidth; // Reset animation
+                wrapper.classList.add('flip');
+
+                // Update the top digit after animation
+                setTimeout(() => {
+                    top.textContent = value;
+                    wrapper.classList.remove('flip');
+                }, 300);
+            }
+        }
+
+        // Function to toggle the theme
+        function toggleTheme() {
+            const body = document.body;
+            const button = document.getElementById('theme-toggle');
+            const date = document.getElementById('date');
+            body.classList.toggle('light-mode');
+
+            // Save the theme in localStorage
+            if (body.classList.contains('light-mode')) {
+                button.textContent = '🌞';
+                date.style.color = '#000';
+                localStorage.setItem('theme', 'light');
+            } else {
+                button.textContent = '🌙';
+                date.style.color = '#bbb';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Check for saved theme on page load
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+            document.getElementById('theme-toggle').textContent = '🌞';
+            document.getElementById('date').style.color = '#000';
+        }
+
+        // Set up event listener for theme toggle button
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+        // Update clock every second
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
